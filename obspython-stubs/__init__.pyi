@@ -1,9 +1,18 @@
 from typing import Optional, TypeVar, Generic, Callable
 
-__T = TypeVar('T')
+__T = TypeVar('__T')
 
 
 class WeakRef(Generic[__T]): ...
+
+
+class TransformInfo: ...
+
+
+class Fader: ...
+
+
+class Volmeter: ...
 
 
 class Source: ...
@@ -13,6 +22,12 @@ class Scene: ...
 
 
 class Data: ...
+
+
+class DataArray: ...
+
+
+class DataItem: ...
 
 
 class View: ...
@@ -36,10 +51,63 @@ class Service: ...
 class Settings: ...
 
 
+class SignalHandler: ...
+
+
 class CallData: ...
 
 
 class FrontendEvent: ...
+
+
+OBS_FRONTEND_EVENT_STREAMING_STARTING: FrontendEvent
+OBS_FRONTEND_EVENT_STREAMING_STARTED: FrontendEvent
+OBS_FRONTEND_EVENT_STREAMING_STOPPING: FrontendEvent
+OBS_FRONTEND_EVENT_STREAMING_STOPPED: FrontendEvent
+OBS_FRONTEND_EVENT_RECORDING_STARTING: FrontendEvent
+OBS_FRONTEND_EVENT_RECORDING_STARTED: FrontendEvent
+OBS_FRONTEND_EVENT_RECORDING_STOPPING: FrontendEvent
+OBS_FRONTEND_EVENT_RECORDING_STOPPED: FrontendEvent
+OBS_FRONTEND_EVENT_SCENE_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_SCENE_LIST_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_TRANSITION_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_TRANSITION_STOPPED: FrontendEvent
+OBS_FRONTEND_EVENT_TRANSITION_LIST_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_SCENE_COLLECTION_LIST_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_PROFILE_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_PROFILE_LIST_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_EXIT: FrontendEvent
+
+OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTING: FrontendEvent
+OBS_FRONTEND_EVENT_REPLAY_BUFFER_STARTED: FrontendEvent
+OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPING: FrontendEvent
+OBS_FRONTEND_EVENT_REPLAY_BUFFER_STOPPED: FrontendEvent
+
+OBS_FRONTEND_EVENT_STUDIO_MODE_ENABLED: FrontendEvent
+OBS_FRONTEND_EVENT_STUDIO_MODE_DISABLED: FrontendEvent
+OBS_FRONTEND_EVENT_PREVIEW_SCENE_CHANGED: FrontendEvent
+
+OBS_FRONTEND_EVENT_SCENE_COLLECTION_CLEANUP: FrontendEvent
+OBS_FRONTEND_EVENT_FINISHED_LOADING: FrontendEvent
+
+OBS_FRONTEND_EVENT_RECORDING_PAUSED: FrontendEvent
+OBS_FRONTEND_EVENT_RECORDING_UNPAUSED: FrontendEvent
+
+OBS_FRONTEND_EVENT_TRANSITION_DURATION_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_REPLAY_BUFFER_SAVED: FrontendEvent
+
+OBS_FRONTEND_EVENT_VIRTUALCAM_STARTED: FrontendEvent
+OBS_FRONTEND_EVENT_VIRTUALCAM_STOPPED: FrontendEvent
+
+OBS_FRONTEND_EVENT_TBAR_VALUE_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_SCENE_COLLECTION_CHANGING: FrontendEvent
+OBS_FRONTEND_EVENT_PROFILE_CHANGING: FrontendEvent
+OBS_FRONTEND_EVENT_SCRIPTING_SHUTDOWN: FrontendEvent
+OBS_FRONTEND_EVENT_PROFILE_RENAMED: FrontendEvent
+OBS_FRONTEND_EVENT_SCENE_COLLECTION_RENAMED: FrontendEvent
+OBS_FRONTEND_EVENT_THEME_CHANGED: FrontendEvent
+OBS_FRONTEND_EVENT_SCREENSHOT_TAKEN: FrontendEvent
 
 
 class Profile: ...
@@ -52,6 +120,30 @@ class Property: ...
 
 
 class Properties: ...
+
+
+class LogLevel:
+    """
+    One of the following values:
+        LOG_ERROR - Use if there's a problem that can potentially affect the program,
+            but isn't enough to require termination of the program.
+
+            Use in creation functions and core subsystem functions. Places that should
+            definitely not fail.
+        LOG_WARNING - Use if a problem occurs that doesn't affect the program and is
+            recoverable.
+
+            Use in places where failure isn't entirely unexpected, and can be handled
+            safely.
+        LOG_INFO - Informative message to be displayed in the log.
+        LOG_DEBUG - Debug message to be used mostly by developers.
+    """
+
+
+LOG_ERROR: LogLevel
+LOG_WARNING: LogLevel
+LOG_INFO: LogLevel
+LOG_DEBUG: LogLevel
 
 
 class FaderType:
@@ -110,6 +202,17 @@ class EncoderType:
 
 OBS_ENCODER_AUDIO: EncoderType
 OBS_ENCODER_VIDEO: EncoderType
+
+
+class OrderMovement: ...
+
+
+OBS_SCALE_DISABLE: OrderMovement
+OBS_SCALE_POINT: OrderMovement
+OBS_SCALE_BICUBIC: OrderMovement
+OBS_SCALE_BILINEAR: OrderMovement
+OBS_SCALE_LANCZOS: OrderMovement
+OBS_SCALE_AREA: OrderMovement
 
 
 class ScaleType:
@@ -550,11 +653,22 @@ OBS_TEXT_INFO_WARNING: TextInfoType
 OBS_TEXT_INFO_ERROR: TextInfoType
 
 
-class NumberType: ...
+class DataType: ...
 
 
-OBS_NUMBER_SCROLLER: NumberType
-OBS_NUMBER_SLIDER: NumberType
+OBS_DATA_NULL: DataType
+OBS_DATA_STRING: DataType
+OBS_DATA_NUMBER: DataType
+OBS_DATA_BOOLEAN: DataType
+OBS_DATA_OBJECT: DataType
+OBS_DATA_ARRAY: DataType
+
+
+class DataNumberType: ...
+
+
+OBS_NUMBER_SCROLLER: DataNumberType
+OBS_NUMBER_SLIDER: DataNumberType
 
 
 class GroupType:
@@ -582,6 +696,35 @@ OBS_BUTTON_DEFAULT: ButtonType
 OBS_BUTTON_URL: ButtonType
 
 
+# Core
+
+
+def obs_find_data_file(file: str) -> str:
+    """
+    Find a core libobs data file
+    :param file: name of the base file
+    :return: A string containing the full path to the file. Use bfree after use.
+    """
+
+
+def obs_add_data_path(path: str) -> None:
+    """
+    Add a path to search libobs data files in.
+    :param path: Full path to directory to look in. The string is copied.
+    """
+
+
+def obs_remove_data_path(path: str) -> bool:
+    """
+    Remove a path from libobs core data paths.
+    :param path: The path to compare to currently set paths.
+        It does not need to be the same pointer, but the path string must
+        match an entry fully.
+    :return: Whether or not the path was successfully removed.
+        If false, the path could not be found.
+    """
+
+
 def obs_get_version() -> int:
     """The current core version"""
 
@@ -601,14 +744,30 @@ def obs_get_locale() -> str:
     """The current locale"""
 
 
-# obs_reset_video
-# obs_reset_audio
-# obs_reset_audio2
-# obs_get_video_info
-# obs_get_video_sdr_white_level
-# obs_get_video_hdr_nominal_peak_level
-# obs_set_video_sdr_white_level
-# obs_get_audio_info
+# def obs_reset_video
+# def obs_reset_audio
+# def obs_reset_audio2
+# def obs_get_video_info
+
+def obs_get_video_sdr_white_level() -> float:
+    """
+    Gets the SDR white level, returns 300.f if no video
+    """
+
+
+def obs_get_video_hdr_nominal_peak_level() -> float:
+    """
+    Gets the HDR nominal peak level, returns 1000.f if no video
+    """
+
+
+def obs_set_video_sdr_white_level(sdr_white_level: float, hdr_nominal_peak_level: float) -> None:
+    """
+    Sets the video levels
+    """
+
+
+# def obs_get_audio_info
 
 def obs_enum_source_types() -> list[str]:
     """
@@ -652,6 +811,28 @@ def obs_enum_encoder_types() -> list[str]:
 def obs_enum_service_types() -> list[str]:
     """
     Enumerates all available service types.
+    """
+
+
+# def obs_get_audio
+# def obs_get_video
+
+def obs_video_active() -> bool:
+    """
+    Returns true if video is active, false otherwise
+    """
+
+
+def obs_set_output_source(channel: int, source: Source) -> None:
+    """
+    Sets the primary output source for a channel.
+    """
+
+
+def obs_get_output_source(channel: int) -> Source:
+    """
+    Gets the primary output source for a channel and increments the reference counter for that source.
+    Use obs_source_release() to release.
     """
 
 
@@ -709,6 +890,12 @@ def obs_get_service_by_name(name: str) -> Optional[Source]:
     """
 
 
+def obs_get_signal_handler() -> SignalHandler:
+    """
+    Returns the primary obs signal handler
+    """
+
+
 def obs_save_source(source: Source) -> Data:
     """
     :return: A new reference to a source’s saved data.
@@ -728,17 +915,43 @@ def obs_load_private_source(data: Data) -> Source:
     """
 
 
-def obs_set_output_source(channel: int, source: Source) -> None:
+def obs_source_save(source: Source) -> None:
     """
-    Sets the primary output source for a channel.
+    Send a save signal to sources
     """
 
 
-def obs_get_output_source(channel: int) -> Source:
+def obs_source_load(source: Source) -> None:
     """
-    Gets the primary output source for a channel and increments the reference counter for that source.
-    Use obs_source_release() to release.
+    Send a load signal to sources (soft deprecated; does not load filters)
     """
+
+
+def obs_source_load2(source: Source) -> None:
+    """
+    Send a load signal to sources
+    """
+
+
+def obs_save_sources() -> DataArray:
+    """
+    Saves sources to a data array
+    """
+
+
+def obs_obj_get_type(obj: any) -> ObjType: ...
+
+
+def obs_obj_get_id(obj: any) -> str: ...
+
+
+def obs_obj_invalid(obj: any) -> bool: ...
+
+
+def obs_obj_get_data(obj: any) -> any: ...
+
+
+def obs_obj_is_private(obj: any) -> bool: ...
 
 
 def obs_audio_monitoring_available() -> bool:
@@ -839,10 +1052,6 @@ def obs_view_remove(view: View):
     Removes a view from the main render loop
     """
 
-
-# Display context
-
-# TODO?
 
 # Sources
 
@@ -1018,7 +1227,11 @@ def obs_source_filter_remove(source: Source, filter: Source) -> None:
     """
 
 
-# def obs_source_filter_set_order
+def obs_source_filter_set_order(source: Source, filter: Source, movement: OrderMovement) -> None:
+    """
+    Modifies the order of a specific filter
+    """
+
 
 def obs_source_get_settings(source: Source) -> Data:
     """
@@ -1051,6 +1264,12 @@ def obs_source_get_id(source: Source) -> str:
 
 
 def obs_source_get_unversioned_id(source: Source) -> str: ...
+
+
+def obs_source_get_signal_handler(source: Source) -> SignalHandler:
+    """
+    Returns the signal handler for a source
+    """
 
 
 def obs_source_set_volume(source: Source, volume: float) -> None:
@@ -1237,8 +1456,15 @@ def obs_source_get_private_settings(item: Source) -> Data:
     """
 
 
-# def obs_source_backup_filters
-# def obs_source_restore_filters
+def obs_source_backup_filters(item: Source) -> DataArray:
+    """
+    Gets private front-end settings data. This data is saved/loaded
+    automatically.  Returns an incremented reference.
+    """
+
+
+def obs_source_restore_filters(source: Source, array: DataArray) -> None: ...
+
 
 # Media controls
 def obs_source_media_play_pause(source: Source, pause: bool) -> None: ...
@@ -1315,6 +1541,7 @@ def obs_transition_set_size(cx: int, cy: int) -> None: ...
 
 # def obs_transition_get_size
 
+
 # Scenes
 
 def obs_scene_create(name: str) -> Scene: ...
@@ -1380,8 +1607,17 @@ def obs_sceneitem_remove(item: SceneItem) -> None:
     """
 
 
-# def obs_sceneitems_add
-# def obs_sceneitem_save
+def obs_sceneitems_add(scene: Scene, data: DataArray) -> None:
+    """
+    Adds a scene item.
+    """
+
+
+def obs_sceneitem_save(item: SceneItem, arr: DataArray) -> None:
+    """
+    Saves Sceneitem into an array
+    """
+
 
 def obs_sceneitem_set_id(sceneitem: SceneItem, id: int) -> None:
     """
@@ -1730,6 +1966,12 @@ def obs_output_paused(output: Output) -> bool:
 def obs_output_get_settings(output: Output) -> Data:
     """
     Gets the current output settings string
+    """
+
+
+def obs_output_get_signal_handler(output: Output) -> SignalHandler:
+    """
+    Returns the signal handler for an output
     """
 
 
@@ -2182,6 +2424,9 @@ def obs_service_get_supported_video_codecs(service: Service) -> list[str]: ...
 def obs_service_get_output_type(service: Service) -> str: ...
 
 
+# Frontend
+
+
 def obs_frontend_get_scene_names() -> list[str]: ...
 
 
@@ -2411,6 +2656,9 @@ def media_frames_per_second_to_fps(fps: MediaFramesPerSecond) -> float: ...
 def media_frames_per_second_is_valid(fps: MediaFramesPerSecond) -> bool: ...
 
 
+# Properties
+
+
 def obs_properties_create() -> Properties:
     """
     :return: A new properties object.
@@ -2564,7 +2812,7 @@ def obs_properties_add_int_slider(
     """
 
 
-def obs_property_int_type(property: Property) -> NumberType: ...
+def obs_property_int_type(property: Property) -> DataNumberType: ...
 
 
 def obs_property_int_min(property: Property) -> int: ...
@@ -2614,7 +2862,7 @@ def obs_properties_add_float_slider(
     """
 
 
-def obs_property_float_type(property: Property) -> NumberType: ...
+def obs_property_float_type(property: Property) -> DataNumberType: ...
 
 
 def obs_property_float_min(property: Property) -> float: ...
@@ -2923,10 +3171,13 @@ def obs_property_group_type(property: Property) -> GroupType: ...
 def obs_property_group_content(property: Property) -> Properties: ...
 
 
-def script_log_no_endl(*args) -> None: ...
+# Scripting
 
 
-def script_log(*args) -> None: ...
+def script_log_no_endl(level: LogLevel, message: str) -> None: ...
+
+
+def script_log(level: LogLevel, message: str) -> None: ...
 
 
 def timer_remove(callback: Callable[[], None]) -> None:
@@ -3021,17 +3272,41 @@ def obs_add_tick_callback(callback: Callable[[float], None]) -> None:
     """
 
 
-# def signal_handler_disconnect(handler: any, signal: str, callback: Callable[[any], None]):
-#    pass
+def signal_handler_connect(handler: SignalHandler, signal: str, callback: Callable[[CallData], None]) -> None:
+    """
+    Adds a callback to a specific signal on a signal handler. This callback has one parameter: the calldata object.
+    :param handler: A signalhandler object
+    :param signal: The signal on the signalhandler
+    :param callback: the callback to connect to the signal.
+        Use signal_handler_disconnect or remove_current_callback to remove the callback.
+    """
 
-# def signal_handler_connect(*args):
-#    pass
 
-# def signal_handler_disconnect_global(*args):
-#    pass
+def signal_handler_disconnect(handler: SignalHandler, signal: str, callback: Callable[[CallData], None]) -> None:
+    """
+    Removes a callback from a specific signal of a signal handler.
+    :param handler: A signalhandler object
+    :param signal: The signal on the signalhandler
+    :param callback: The callback to disconnect from the signal.
+    """
 
-# def signal_handler_connect_global(*args):
-#    pass
+
+def signal_handler_connect_global(handler: SignalHandler, callback: Callable[[str, CallData], None]) -> None:
+    """
+    Adds a global callback to a signal handler. This callback has two parameters: the first parameter is the signal string, and the second parameter is the calldata object.
+    :param handler: A signalhandler object
+    :param callback: the callback to connect to the signal.
+        Use signal_handler_disconnect_global or remove_current_callback to remove the callback.
+    """
+
+
+def signal_handler_disconnect_global(handler: SignalHandler, callback: Callable[[str, CallData], None]) -> None:
+    """
+    Removes a global callback from a signal handler.
+    :param handler: A signalhandler object
+    :param callback: The callback to disconnect from the signal.
+    """
+
 
 def obs_hotkey_unregister(callback: Callable[[bool], None]) -> None:
     """
@@ -3058,3 +3333,558 @@ def remove_current_callback() -> None:
     """
     Removes the current callback being executed. Does nothing if not within a callback.
     """
+
+
+# Audio Controls
+
+def obs_fader_create(type: FaderType) -> Fader:
+    """
+    Create a fader
+
+    A fader object is used to map input values from a gui element to dB and
+    subsequently multiply values used by libobs to mix audio.
+    The current "position" of the fader is internally stored as dB value.
+    :param type: the type of the fader
+    :return: fader object
+    """
+
+
+def obs_fader_destroy(fader: Fader) -> None:
+    """
+    Destroy the fader and free all related data
+    :param fader: fader object
+    """
+
+
+def obs_fader_set_db(fader: Fader, db: float) -> bool:
+    """
+    Set the fader dB value
+    :param fader: fader object
+    :param db: new dB value
+    :return: true if value was set without clamping
+    """
+
+
+def obs_fader_get_db(fader: Fader) -> float:
+    """
+    Get the current fader dB value
+    :param fader: fader object
+    :return: fader dB value
+    """
+
+
+def obs_fader_set_deflection(fader: Fader, deflection: float) -> bool:
+    """
+    Set the fader value from deflection
+
+    This sets the new fader value from the supplied deflection, in case the
+    resulting value was clamped due to limits this function will return false.
+    The deflection is typically in the range [0.0, 1.0] but may be higher in
+    order to provide some amplification. In order for this to work the high dB
+    limit has to be set.
+    :param fader: fader object
+    :return: true if the value was set without deflection
+    """
+
+
+def obs_fader_get_deflection(fader: Fader) -> float:
+    """
+    Get the current fader deflection
+    :param fader: fader object
+    :return: current fader deflection
+    """
+
+
+def obs_fader_set_mul(fader: Fader, mul: float) -> bool:
+    """
+    Set the fader value from multiplier
+    :param fader: fader object
+    :return: true if the value was set without clamping
+    """
+
+
+def obs_fader_get_mul(fader: Fader) -> float:
+    """
+    Get the current fader multiplier value
+    :param fader: fader object
+    :return: current fader multiplier
+    """
+
+
+def obs_fader_attach_source(fader: Fader, source: Source) -> bool:
+    """
+    Attach the fader to a source
+
+    When the fader is attached to a source it will automatically sync it's state
+    to the volume of the source.
+    :param fader: fader object
+    :param source: source object
+    :return: true on success
+    """
+
+
+def obs_fader_detach_source(fader: Fader) -> None:
+    """
+    Detach the fader from the currently attached source
+    :param fader: fader object
+    """
+
+
+def obs_volmeter_create(type: FaderType) -> Volmeter:
+    """
+    Create a volume meter
+
+    A volume meter object is used to prepare the sound levels reported by audio
+    sources for display in a GUI.
+    It will automatically take source volume into account and map the levels
+    to a range [0.0f, 1.0f].
+
+    :param type: the mapping type to use for the volume meter
+    :return: volume meter object
+    """
+
+
+def obs_volmeter_destroy(volmeter: Volmeter) -> None:
+    """
+    Destroy the volume meter and free all related data
+    :param volmeter: volmeter object
+    """
+
+
+def obs_volmeter_attach_source(volmeter: Volmeter, source: Source) -> bool:
+    """
+    Attach the volume meter to a source
+
+    When the volume meter is attached to a source it will start to listen to
+    volume updates on the source and after preparing the data emit its own
+    signal.
+    :param volmeter: volume meter object
+    :param source: source object
+    :return: true on successs
+    """
+
+
+def obs_volmeter_detach_source(volmeter: Volmeter) -> None:
+    """
+    Detach the volume meter from the currently attached source
+    :param volmeter: volume meter object
+    """
+
+
+def obs_volmeter_set_peak_meter_type(volmeter: Volmeter, peak_meter_type: PeakMeterType) -> None:
+    """
+    Set the peak meter type for the volume meter
+    :param volmeter: volume meter object
+    :param peak_meter_type: set if true-peak needs to be measured.
+    """
+
+
+def obs_volmeter_get_nr_channels(volmeter: Volmeter) -> int:
+    """
+    Get the number of channels which are configured for this source.
+    :param volmeter: volume meter object
+    """
+
+
+def obs_mul_to_db(mul: float) -> float: ...
+
+
+def obs_db_to_mul(db: float) -> float: ...
+
+
+# Data
+
+
+def obs_data_create() -> Data: ...
+
+
+def obs_data_create_from_json(json_string: str) -> Data: ...
+
+
+def obs_data_create_from_json_file(json_file: str) -> Data: ...
+
+
+def obs_data_create_from_json_file_safe(json_file: str, backup_ext: str) -> Data: ...
+
+
+def obs_data_addref(data: Data) -> None: ...
+
+
+def obs_data_release(data: Data) -> None: ...
+
+
+def obs_data_get_json(data: Data) -> str: ...
+
+
+def obs_data_get_last_json(data: Data) -> str: ...
+
+
+def obs_data_save_json(data: Data, file: str) -> bool: ...
+
+
+def obs_data_save_json_safe(data: Data, file: str, temp_ext: str, backup_ext: str) -> bool: ...
+
+
+def obs_data_apply(target: Data, apply_data: Data) -> None: ...
+
+
+def obs_data_clear(data: Data) -> None: ...
+
+
+# Set functions
+
+
+def obs_data_set_string(data: Data, name: str, val: str) -> None: ...
+
+
+def obs_data_set_int(data: Data, name: str, val: int) -> None: ...
+
+
+def obs_data_set_double(data: Data, name: str, val: float) -> None: ...
+
+
+def obs_data_set_bool(data: Data, name: str, val: bool) -> None: ...
+
+
+def obs_data_set_obj(data: Data, name: str, val: Data) -> None: ...
+
+
+def obs_data_set_array(data: Data, name: str, val: DataArray) -> None: ...
+
+
+def obs_data_get_defaults(data: Data) -> Data:
+    """
+    Creates a Data object filled with all default values.
+    """
+
+
+# Default value functions
+
+
+def obs_data_set_default_string(data: Data, name: str, val: str) -> None: ...
+
+
+def obs_data_set_default_int(data: Data, name: str, val: int) -> None: ...
+
+
+def obs_data_set_default_double(data: Data, name: str, val: float) -> None: ...
+
+
+def obs_data_set_default_bool(data: Data, name: str, val: bool) -> None: ...
+
+
+def obs_data_set_default_obj(data: Data, name: str, val: Data) -> None: ...
+
+
+def obs_data_set_default_array(data: Data, name: str, val: DataArray) -> None: ...
+
+
+# Application overrides
+# Use these to communicate the actual values of settings in case the user
+# settings aren't appropriate
+
+
+def obs_data_set_autoselect_string(data: Data, name: str, val: str) -> None: ...
+
+
+def obs_data_set_autoselect_int(data: Data, name: str, val: int) -> None: ...
+
+
+def obs_data_set_autoselect_double(data: Data, name: str, val: float) -> None: ...
+
+
+def obs_data_set_autoselect_bool(data: Data, name: str, val: bool) -> None: ...
+
+
+def obs_data_set_autoselect_obj(data: Data, name: str, val: Data) -> None: ...
+
+
+# Get functions
+
+def obs_data_get_string(data: Data, name: str) -> str: ...
+
+
+def obs_data_get_int(data: Data, name: str) -> int: ...
+
+
+def obs_data_get_double(data: Data, name: str) -> float: ...
+
+
+def obs_data_get_bool(data: Data, name: str) -> bool: ...
+
+
+def obs_data_get_obj(data: Data, name: str) -> Data: ...
+
+
+def obs_data_get_array(data: Data, name: str) -> DataArray: ...
+
+
+def obs_data_get_default_string(data: Data, name: str) -> str: ...
+
+
+def obs_data_get_default_int(data: Data, name: str) -> int: ...
+
+
+def obs_data_get_default_double(data: Data, name: str) -> float: ...
+
+
+def obs_data_get_default_bool(data: Data, name: str) -> bool: ...
+
+
+def obs_data_get_default_obj(data: Data, name: str) -> Data: ...
+
+
+def obs_data_get_default_array(data: Data, name: str) -> DataArray: ...
+
+
+def obs_data_get_autoselect_string(data: Data, name: str) -> str: ...
+
+
+def obs_data_get_autoselect_int(data: Data, name: str) -> int: ...
+
+
+def obs_data_get_autoselect_double(data: Data, name: str) -> float: ...
+
+
+def obs_data_get_autoselect_bool(data: Data, name: str) -> bool: ...
+
+
+def obs_data_get_autoselect_obj(data: Data, name: str) -> Data: ...
+
+
+def obs_data_get_autoselect_array(data: Data, name: str) -> DataArray: ...
+
+
+# Array functions
+
+def obs_data_array_create() -> DataArray: ...
+
+
+def obs_data_array_addref(array: DataArray) -> None: ...
+
+
+def obs_data_array_release(array: DataArray) -> None: ...
+
+
+def obs_data_array_count(array: DataArray) -> int: ...
+
+
+def obs_data_array_item(array: DataArray, idx: int) -> Data: ...
+
+
+def obs_data_array_push_back(array: DataArray, obj: Data) -> int: ...
+
+
+def obs_data_array_insert(array: DataArray, idx: int, obj: Data) -> None: ...
+
+
+def obs_data_array_push_back_array(array: DataArray, array2: DataArray) -> None: ...
+
+
+def obs_data_array_erase(array: DataArray, idx: int) -> None: ...
+
+
+# Item status inspection
+
+def obs_data_has_user_value(data: Data, name: str) -> bool: ...
+
+
+def obs_data_has_default_value(data: Data, name: str) -> bool: ...
+
+
+def obs_data_has_autoselect_value(data: Data, name: str) -> bool: ...
+
+
+def obs_data_item_has_user_value(data: DataItem) -> bool: ...
+
+
+def obs_data_item_has_default_value(data: DataItem) -> bool: ...
+
+
+def obs_data_item_has_autoselect_value(data: DataItem) -> bool: ...
+
+
+# Clearing data values
+
+def obs_data_unset_user_value(data: Data, name: str) -> None: ...
+
+
+def obs_data_unset_default_value(data: Data, name: str) -> None: ...
+
+
+def obs_data_unset_autoselect_value(data: Data, name: str) -> None: ...
+
+
+def obs_data_item_unset_user_value(data: DataItem) -> None: ...
+
+
+def obs_data_item_unset_default_value(data: DataItem) -> None: ...
+
+
+def obs_data_item_unset_autoselect_value(data: DataItem) -> None: ...
+
+
+# Item iteration
+
+def obs_data_first(data: Data) -> DataItem: ...
+
+
+def obs_data_item_byname(data: Data, name: str) -> DataItem: ...
+
+
+def obs_data_item_next(item: DataItem) -> bool: ...
+
+
+def obs_data_item_release(item: DataItem) -> None: ...
+
+
+def obs_data_item_remove(item: DataItem) -> None: ...
+
+
+# Gets Item type
+def obs_data_item_gettype(item: DataItem) -> DataType: ...
+
+
+def obs_data_item_numtype(item: DataItem) -> DataNumberType: ...
+
+
+def obs_data_item_get_name(item: DataItem) -> str: ...
+
+
+# Item set functions
+def obs_data_item_set_string(item: DataItem, val: str) -> None: ...
+
+
+def obs_data_item_set_int(item: DataItem, val: int) -> None: ...
+
+
+def obs_data_item_set_double(item: DataItem, val: float) -> None: ...
+
+
+def obs_data_item_set_bool(item: DataItem, val: bool) -> None: ...
+
+
+def obs_data_item_set_obj(item: DataItem, val: Data) -> None: ...
+
+
+def obs_data_item_set_array(item: DataItem, val: DataArray) -> None: ...
+
+
+def obs_data_item_set_default_string(item: DataItem, val: str) -> None: ...
+
+
+def obs_data_item_set_default_int(item: DataItem, val: int) -> None: ...
+
+
+def obs_data_item_set_default_double(item: DataItem, val: float) -> None: ...
+
+
+def obs_data_item_set_default_bool(item: DataItem, val: bool) -> None: ...
+
+
+def obs_data_item_set_default_obj(item: DataItem, val: Data) -> None: ...
+
+
+def obs_data_item_set_default_array(item: DataItem, val: DataArray) -> None: ...
+
+
+def obs_data_item_set_autoselect_string(item: DataItem, val: str) -> None: ...
+
+
+def obs_data_item_set_autoselect_int(item: DataItem, val: int) -> None: ...
+
+
+def obs_data_item_set_autoselect_double(item: DataItem, val: float) -> None: ...
+
+
+def obs_data_item_set_autoselect_bool(item: DataItem, val: bool) -> None: ...
+
+
+def obs_data_item_set_autoselect_obj(item: DataItem, val: Data) -> None: ...
+
+
+def obs_data_item_set_autoselect_array(item: DataItem, val: DataArray) -> None: ...
+
+
+# Item get functions
+def obs_data_item_get_string(item: DataItem) -> str: ...
+
+
+def obs_data_item_get_int(item: DataItem) -> int: ...
+
+
+def obs_data_item_get_double(item: DataItem) -> float: ...
+
+
+def obs_data_item_get_bool(item: DataItem) -> bool: ...
+
+
+def obs_data_item_get_obj(item: DataItem) -> Data: ...
+
+
+def obs_data_item_get_array(item: DataItem) -> DataArray: ...
+
+
+def obs_data_item_get_default_string(item: DataItem) -> str: ...
+
+
+def obs_data_item_get_default_int(item: DataItem) -> int: ...
+
+
+def obs_data_item_get_default_double(item: DataItem) -> float: ...
+
+
+def obs_data_item_get_default_bool(item: DataItem) -> bool: ...
+
+
+def obs_data_item_get_default_obj(item: DataItem) -> Data: ...
+
+
+def obs_data_item_get_default_array(item: DataItem) -> DataArray: ...
+
+
+def obs_data_item_get_autoselect_string(item: DataItem) -> str: ...
+
+
+def obs_data_item_get_autoselect_int(item: DataItem) -> int: ...
+
+
+def obs_data_item_get_autoselect_double(item: DataItem) -> float: ...
+
+
+def obs_data_item_get_autoselect_bool(item: DataItem) -> bool: ...
+
+
+def obs_data_item_get_autoselect_obj(item: DataItem) -> Data: ...
+
+
+def obs_data_item_get_autoselect_array(item: DataItem) -> DataArray: ...
+
+
+# Helper functions for media_frames_per_second/OBS_PROPERTY_FRAME_RATE
+
+def obs_data_set_frames_per_second(data: Data, name: str, fps: MediaFramesPerSecond, option: str) -> None: ...
+
+
+def obs_data_set_default_frames_per_second(data: Data, name: str, fps: MediaFramesPerSecond, option: str) -> None: ...
+
+
+def obs_data_set_autoselect_frames_per_second(data: Data, name: str, fps: MediaFramesPerSecond,
+                                              option: str) -> None: ...
+
+
+# def obs_data_get_frames_per_second
+# def obs_data_get_default_frames_per_second
+# def obs_data_get_autoselect_frames_per_second
+
+def obs_data_item_set_frames_per_second(item: DataItem, fps: MediaFramesPerSecond, option: str) -> None: ...
+
+
+def obs_data_item_set_default_frames_per_second(item: DataItem, fps: MediaFramesPerSecond, option: str) -> None: ...
+
+
+def obs_data_item_set_autoselect_frames_per_second(item: DataItem, fps: MediaFramesPerSecond, option: str) -> None: ...
+
+# def obs_data_item_get_frames_per_second
+# def obs_data_item_get_default_frames_per_second
+# def obs_data_item_get_autoselect_frames_per_second

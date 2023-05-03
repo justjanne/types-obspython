@@ -17,7 +17,7 @@ types and metadata should be contributed there.
 '''.lstrip()
 
 setup(name=name,
-      version="29.0.2.1",
+      version="29.0.2.2",
       description=description,
       long_description=long_description,
       long_description_content_type="text/markdown",
